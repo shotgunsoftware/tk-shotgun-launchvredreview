@@ -159,7 +159,5 @@ class ReviewWithVRED(Application):
                 context=ctx,
             )
         except TankError as e:
-            self.log_error(
-                "Failed to launch VRED for this published file: %s" % e
-            )
+            self.log_error("Failed to launch VRED for this published file: %s" % e)
             return
