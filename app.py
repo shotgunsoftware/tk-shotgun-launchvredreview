@@ -28,34 +28,49 @@ class ReviewWithVRED(Application):
         """
         Called as the application is being initialized
         """
+        # Assume we do not have VRED Presenter installed and change if / when
+        # we find it.
+        installed = False
+        tk = sgtk.sgtk_from_entity("Project", self.context.project["id"])
+        context = tk.context_from_entity("Project", self.context.project["id"])
+        try:
+            install_check = self.execute_hook(
+                "hook_verify_install",
+                tk=tk,
+                context=context,
+            )
+        except TankError as e:
+            self.log_error("Failed to check VRED installation: %s" % e)
+            return
 
-        # first, we use the special import_module command to access the app module
-        # that resides inside the python folder in the app. This is where the actual UI
-        # and business logic of the app is kept. By using the import_module command,
-        # toolkit's code reload mechanism will work properly.
-        app_payload = self.import_module("app")
+        # If we find it, change the logic and register the app the right way
+        if install_check:
+            installed = True
 
-        # now register a *command*, which is normally a menu entry of some kind on a Shotgun
-        # menu (but it depends on the engine). The engine will manage this command and
-        # whenever the user requests the command, it will call out to the callback.
+        if installed:
+            app_payload = self.import_module("app")
 
-        # first, set up our callback, calling out to a method inside the app module contained
-        # in the python folder of the app
-        menu_callback = lambda: app_payload.dialog.show_dialog(self)
+            # Make sure we check on the permissions and platforms settings
+            deny_permissions = self.get_setting("deny_permissions")
+            deny_platforms = self.get_setting("deny_platforms")
 
-        # Make sure we check on the permissions and platforms settings
-        deny_permissions = self.get_setting("deny_permissions")
-        deny_platforms = self.get_setting("deny_platforms")
+            params = {
+                "title": "Review with VRED.",
+                "deny_permissions": deny_permissions,
+                "deny_platforms": deny_platforms,
+                "supports_multiple_selection": False,
+            }
 
-        params = {
-            "title": "Review with VRED.",
-            "deny_permissions": deny_permissions,
-            "deny_platforms": deny_platforms,
-            "supports_multiple_selection": False,
-        }
+            # now register the command with the engine
+            self.engine.register_command(
+                "Review with VRED", self._launch_via_hook, params
+            )
 
-        # now register the command with the engine
-        self.engine.register_command("Review with VRED", self._launch_via_hook, params)
+        else:
+            # Bring up the Help UI
+            app_payload = self.import_module("app")
+            menu_callback = lambda: app_payload.dialog.show_dialog(self)
+            self.engine.register_command("Review with VRED", menu_callback)
 
     def _launch_via_hook(self, entity_type, entity_ids):
 
@@ -134,6 +149,18 @@ class ReviewWithVRED(Application):
                     "Unable to determine the path on disk for entity id=%s."
                     % publish_id
                 )
+
+        # first check if we should pass this to the viewer
+        # hopefully this will cover most image sequence types
+        # any image sequence types not passed to the viewer
+        # will fail later when we check if the file exists on disk
+        for x in self.get_setting("viewer_extensions", {}):
+            if path_on_disk.endswith(".%s" % x):
+                self.log_error("File is of type %s" % x)
+            else:
+                self.log_info("File type does not work for Review with VRED.")
+                return
+
         # check that it exists
         if not os.path.exists(path_on_disk):
             self.log_error(
@@ -161,3 +188,8 @@ class ReviewWithVRED(Application):
         except TankError as e:
             self.log_error("Failed to launch VRED for this published file: %s" % e)
             return
+
+        if launched:
+            self.log_info("Successfully launched Review with VRED.")
+        else:
+            self.log_info("There was an error launching Review with VRED.")

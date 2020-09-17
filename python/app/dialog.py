@@ -1,4 +1,4 @@
-# Copyright (c) 2020 Shotgun Software Inc.
+# Copyright (c) 2020 Autodesk, Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -6,7 +6,7 @@
 # Source Code License included in this distribution package. See LICENSE.
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
-# not expressly granted therein are reserved by Shotgun Software Inc.
+# not expressly granted therein are reserved by Autodesk, Inc.
 
 import sgtk
 import os
@@ -32,7 +32,9 @@ def show_dialog(app_instance):
 
     # we pass the dialog class to this method and leave the actual construction
     # to be carried out by toolkit.
-    app_instance.engine.show_dialog("Starter Template App...", app_instance, AppDialog)
+    app_instance.engine.show_dialog(
+        "Review with VRED Presenter", app_instance, AppDialog
+    )
 
 
 class AppDialog(QtGui.QWidget):
@@ -56,7 +58,7 @@ class AppDialog(QtGui.QWidget):
         self._app = sgtk.platform.current_bundle()
 
         # logging happens via a standard toolkit logger
-        logger.info("Launching Starter Application...")
+        logger.info("VRED Presenter not found, showing Help UI.")
 
         # via the self._app handle we can for example access:
         # - The engine, via self._app.engine
@@ -64,4 +66,4 @@ class AppDialog(QtGui.QWidget):
         # - An Sgtk API instance, via self._app.sgtk
 
         # lastly, set up our very basic UI
-        self.ui.context.setText("Current Context: %s" % self._app.context)
+        self.ui.context.setText("Add instructions here.")

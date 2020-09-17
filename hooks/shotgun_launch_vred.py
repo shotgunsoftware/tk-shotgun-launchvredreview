@@ -21,7 +21,7 @@ HookBaseClass = sgtk.get_hook_baseclass()
 class LaunchWithVRED(HookBaseClass):
     def execute(self, path, context):
         """
-        Bootstrap launches VRED Presenter with Shotgun Panel
+        Bootstrap launches VRED Presenter
 
         :param path: full path to the published file
         :param context: context object representing the publish
@@ -29,17 +29,26 @@ class LaunchWithVRED(HookBaseClass):
         tk = sgtk.sgtk_from_path(path)
         software_launcher = sgtk.platform.create_engine_launcher(tk, context, "tk-vred")
         software_versions = software_launcher.scan_software()
+        presenter_versions = []
         for version in software_versions:
-            # TODO: Generate latest VRED version here
             if re.search("Presenter", version.product):
-                launch_info = software_launcher.prepare_launch(version.path, "")
+                presenter_versions.append(version)
+        presenter_versions.sort()
+        presenter_version = presenter_versions[-1]
+        launch_info = software_launcher.prepare_launch(presenter_version.path, "")
         env = os.environ.copy()
         for k in launch_info.environment:
             env[k] = launch_info.environment[k]
         try:
-            subprocess.Popen([launch_info.path, launch_info.args, path], env=env)
+            launched = subprocess.Popen(
+                [launch_info.path, launch_info.args, path], env=env
+            )
         except RuntimeError:
             raise TankError(
                 "Unable to launch VRED Presenter in context "
                 "%r for file %s." % (context, path)
             )
+        if launched:
+            return True
+        else:
+            return False
