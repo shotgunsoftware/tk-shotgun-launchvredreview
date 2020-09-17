@@ -33,7 +33,6 @@ class LaunchWithVRED(HookBaseClass):
         for version in software_versions:
             if re.search("Presenter", version.product):
                 presenter_versions.append(version)
-        presenter_versions.sort()
         presenter_version = presenter_versions[-1]
         launch_info = software_launcher.prepare_launch(presenter_version.path, "")
         env = os.environ.copy()
