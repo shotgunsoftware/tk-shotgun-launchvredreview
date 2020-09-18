@@ -9,14 +9,9 @@
 # not expressly granted therein are reserved by Autodesk, Inc.
 
 import sgtk
-import os
-import sys
-import threading
-
 # by importing QT from sgtk rather than directly, we ensure that
 # the code will be compatible with both PySide and PyQt.
 from sgtk.platform.qt import QtCore, QtGui
-from .ui.dialog import Ui_Dialog
 
 # standard toolkit logger
 logger = sgtk.platform.get_logger(__name__)
@@ -43,27 +38,15 @@ class AppDialog(QtGui.QWidget):
     """
 
     def __init__(self):
-        """
-        Constructor
-        """
-        # first, call the base class and let it do its thing.
-        QtGui.QWidget.__init__(self)
+        super().__init__()
+        self.title = 'Review with VRED Help UI'
+        self.left = 10
+        self.top = 10
+        self.width = 640
+        self.height = 480
+        self.initUI()
 
-        # now load in the UI that was created in the UI designer
-        self.ui = Ui_Dialog()
-        self.ui.setupUi(self)
-
-        # most of the useful accessors are available through the Application class instance
-        # it is often handy to keep a reference to this. You can get it via the following method:
-        self._app = sgtk.platform.current_bundle()
-
-        # logging happens via a standard toolkit logger
-        logger.info("VRED Presenter not found, showing Help UI.")
-
-        # via the self._app handle we can for example access:
-        # - The engine, via self._app.engine
-        # - A Shotgun API instance, via self._app.shotgun
-        # - An Sgtk API instance, via self._app.sgtk
-
-        # lastly, set up our very basic UI
-        self.ui.context.setText("Add instructions here.")
+    def initUI(self):
+        self.setWindowTitle(self.title)
+        self.setGeometry(self.left, self.top, self.width, self.height)
+        self.show()
