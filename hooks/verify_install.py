@@ -26,12 +26,16 @@ class VerifyVREDInstall(HookBaseClass):
                 tk, context, "tk-vred"
             )
             software_versions = software_launcher.scan_software()
-            presenter_versions = []
-            for version in software_versions:
-                if re.search("Presenter", version.product):
-                    presenter_versions.append(version)
-            presenter_version = presenter_versions[-1]
+            if software_versions:
+                presenter_versions = []
+                for version in software_versions:
+                    if re.search("Presenter", version.product):
+                        presenter_versions.append(version)
+                presenter_version = presenter_versions[-1]
 
-            return presenter_version
+                return presenter_version
+            else:
+                return None
+
         except RuntimeError:
             raise TankError("Unable to verify VRED Presenter installation.")

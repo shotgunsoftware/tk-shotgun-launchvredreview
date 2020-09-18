@@ -36,17 +36,19 @@ class AppDialog(QtGui.QWidget):
     """
     Main application dialog window
     """
+    @property
+    def hide_tk_title_bar(self):
+        "Tell the system to not show the standard toolkit toolbar"
+        return True
 
     def __init__(self):
         super().__init__()
         self.title = 'Review with VRED Help UI'
-        self.left = 10
-        self.top = 10
-        self.width = 640
-        self.height = 480
         self.initUI()
 
     def initUI(self):
         self.setWindowTitle(self.title)
-        self.setGeometry(self.left, self.top, self.width, self.height)
-        self.show()
+        self.layout = QtGui.QVBoxLayout()
+        self.label1 = QtGui.QLabel("VRED Presenter has not been found on this system")
+        self.layout.addWidget(self.label1)
+        self.setLayout(self.layout)
