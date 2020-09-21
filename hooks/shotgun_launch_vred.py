@@ -11,6 +11,7 @@
 import os
 import subprocess
 import re
+import six
 
 import sgtk
 from sgtk import TankError
@@ -37,6 +38,7 @@ class LaunchWithVRED(HookBaseClass):
         launch_info = software_launcher.prepare_launch(presenter_version.path, "")
         env = os.environ.copy()
         for k in launch_info.environment:
+            six.ensure_text(k)
             env[k] = launch_info.environment[k]
         try:
             launched = subprocess.Popen(
