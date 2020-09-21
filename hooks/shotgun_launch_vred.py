@@ -27,7 +27,7 @@ class LaunchWithVRED(HookBaseClass):
         :param path: full path to the published file
         :param context: context object representing the publish
         """
-        tk = sgtk.sgtk_from_path(path)
+        tk = sgtk.sgtk_from_entity("Project", self.parent.context.project["id"])
         software_launcher = sgtk.platform.create_engine_launcher(tk, context, "tk-vred")
         software_versions = software_launcher.scan_software()
         presenter_versions = []
