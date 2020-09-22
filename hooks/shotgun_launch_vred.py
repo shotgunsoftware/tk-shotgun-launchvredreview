@@ -14,7 +14,6 @@ import re
 
 import sgtk
 from sgtk import TankError
-from tank_vendor import six
 
 HookBaseClass = sgtk.get_hook_baseclass()
 
@@ -38,8 +37,10 @@ class LaunchWithVRED(HookBaseClass):
         launch_info = software_launcher.prepare_launch(presenter_version.path, "")
         env = os.environ.copy()
         for k in launch_info.environment:
-            six.ensure_text(k)
-            env[k] = launch_info.environment[k]
+            if k == "SGTK_CONTEXT":
+                env[k] = sgtk.context.serialize(context)
+            else:
+                env[k] = str(launch_info.environment[k])
         try:
             launched = subprocess.Popen(
                 [launch_info.path, launch_info.args, path], env=env
