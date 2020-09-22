@@ -11,10 +11,10 @@
 import os
 import subprocess
 import re
-import six
 
 import sgtk
 from sgtk import TankError
+from tank_vendor import six
 
 HookBaseClass = sgtk.get_hook_baseclass()
 

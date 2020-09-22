@@ -41,8 +41,8 @@ class AppDialog(QtGui.QWidget):
         "Tell the system to not show the standard toolkit toolbar"
         return True
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super(AppDialog, self).__init__(parent)
         self.title = 'Review with VRED Help UI'
         self.initUI()
 
