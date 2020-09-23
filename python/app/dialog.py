@@ -8,6 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Autodesk, Inc.
 
+import os
+
 import sgtk
 # by importing QT from sgtk rather than directly, we ensure that
 # the code will be compatible with both PySide and PyQt.
@@ -47,8 +49,25 @@ class AppDialog(QtGui.QWidget):
         self.initUI()
 
     def initUI(self):
+        # get the current bundle
+        self._app = sgtk.platform.current_bundle()
+        # Setup the UI
         self.setWindowTitle(self.title)
         self.layout = QtGui.QVBoxLayout()
-        self.label1 = QtGui.QLabel("VRED Presenter has not been found on this system")
+        self.logo = QtGui.QLabel()
+        self.logo.setPixmap(QtGui.QPixmap(os.path.join(self._app.disk_location, "icon_256.png")))
+        self.label1 = QtGui.QLabel()
+        self.label1.setText(
+            "Shotgun cannot find VRED Presenter on your system.<p>"
+            "To use this feature, please contact your system "
+            "administrator to get VRED Presenter installed on this computer.<br>"
+            "Note: VRED Professional also includes an installation of "
+            "VRED Presenter that can be used with Shotgun.<br>"
+            "This functionality was introduced with the VRED2021.2 release.<p>"
+            "<a href=https://www.autodesk.com/products/vred/features?#internal-link-vred-presenter>"
+            "Learn more about VRED Presenter here.</a>"
+        )
+        self.label1.setOpenExternalLinks(True)
+        self.layout.addWidget(self.logo)
         self.layout.addWidget(self.label1)
         self.setLayout(self.layout)
