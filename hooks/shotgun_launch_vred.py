@@ -28,7 +28,7 @@ class LaunchWithVRED(HookBaseClass):
         """
         tk = sgtk.sgtk_from_entity("Project", self.parent.context.project["id"])
         software_launcher = sgtk.platform.create_engine_launcher(tk, context, "tk-vred")
-        software_versions = software_launcher.scan_software()
+        software_versions = software_launcher.scan_for_presenter()
         presenter_versions = []
         for version in software_versions:
             if re.search("Presenter", version.product):

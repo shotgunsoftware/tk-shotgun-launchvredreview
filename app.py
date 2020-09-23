@@ -55,7 +55,7 @@ class ReviewWithVRED(Application):
             deny_platforms = self.get_setting("deny_platforms")
 
             params = {
-                "title": "Review with VRED.",
+                "title": "Review with VRED",
                 "deny_permissions": deny_permissions,
                 "deny_platforms": deny_platforms,
                 "supports_multiple_selection": False,

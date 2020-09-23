@@ -25,7 +25,7 @@ class VerifyVREDInstall(HookBaseClass):
             software_launcher = sgtk.platform.create_engine_launcher(
                 tk, context, "tk-vred"
             )
-            software_versions = software_launcher.scan_software()
+            software_versions = software_launcher.scan_for_presenter()
             if software_versions:
                 presenter_versions = []
                 for version in software_versions:
