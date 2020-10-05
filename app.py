@@ -34,11 +34,7 @@ class ReviewWithVRED(Application):
         tk = sgtk.sgtk_from_entity("Project", self.context.project["id"])
         context = tk.context_from_entity("Project", self.context.project["id"])
         try:
-            install_check = self.execute_hook(
-                "hook_verify_install",
-                tk=tk,
-                context=context,
-            )
+            install_check = self.execute_hook("hook_verify_install")
         except TankError as e:
             self.log_error("Failed to check VRED installation: %s" % e)
             return
@@ -93,7 +89,7 @@ class ReviewWithVRED(Application):
                     "Version", [["id", "is", entity_ids[0]]], ["published_files"]
                 )
                 if not v.get("published_files"):
-                    self.log_error(
+                    self.logger.error(
                         "Sorry, this can only be used on Versions with an associated Published File."
                     )
                     return
@@ -170,13 +166,14 @@ class ReviewWithVRED(Application):
             return
 
         # now get the context - try to be as inclusive as possible here:
-        # start with the task, if that doesn't work, fall back onto the path
-        # this is because some paths don't include all the metadata that
-        # is contained inside the publish record (e.g typically not the task)
+        # start with the task, if that doesn't work, fall back onto the entity
         if d.get("task"):
             ctx = self.sgtk.context_from_entity("Task", d.get("task").get("id"))
         else:
-            ctx = self.sgtk.context_from_path(path_on_disk)
+            ctx = self.sgtk.context_from_entity(
+                d.get("entity").get("type"), d.get("entity").get("id")
+            )
+
 
         # call out to the hook
         try:

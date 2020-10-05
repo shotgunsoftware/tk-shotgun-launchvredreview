@@ -45,12 +45,12 @@ class AppDialog(QtGui.QWidget):
 
     def __init__(self, parent=None):
         super(AppDialog, self).__init__(parent)
+        # get the current bundle
+        self._app = sgtk.platform.current_bundle()
         self.title = 'Review with VRED Help UI'
         self.initUI()
 
     def initUI(self):
-        # get the current bundle
-        self._app = sgtk.platform.current_bundle()
         # Setup the UI
         self.setWindowTitle(self.title)
         self.layout = QtGui.QVBoxLayout()

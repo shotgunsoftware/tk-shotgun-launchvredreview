@@ -17,10 +17,12 @@ HookBaseClass = sgtk.get_hook_baseclass()
 
 
 class VerifyVREDInstall(HookBaseClass):
-    def execute(self, tk, context):
+    def execute(self):
         """
         Verify VRED Presenter installation
         """
+        tk = self.parent.sgtk
+        context = self.parent.context
         try:
             software_launcher = sgtk.platform.create_engine_launcher(
                 tk, context, "tk-vred"
