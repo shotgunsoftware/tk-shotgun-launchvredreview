@@ -1,4 +1,4 @@
-# Copyright (c) 2020 Shotgun Software Inc.
+# Copyright (c) 2020 Autodesk, Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -6,28 +6,69 @@
 # Source Code License included in this distribution package. See LICENSE.
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
-# not expressly granted therein are reserved by Shotgun Software Inc.
+# not expressly granted therein are reserved by Autodesk, Inc.
 
 # Metadata defining the behaviour and requirements for this engine
 
 # expected fields in the configuration file for this engine
 configuration:
 
+  deny_permissions:
+    type: list
+    values: { type: shotgun_permission_group }
+    allows_empty: True
+    description: "An optional parameter which lets you limit the visibility of this app.
+                       If you for example put in ['Artist'] as the value for this parameter,
+                       any user belonging to the shotgun permissions group Artist will not be
+                       able to see or execute the App."
+
+  deny_platforms:
+    type: list
+    values: { type: str }
+    allows_empty: True
+    description: "An optional parameter which lets you turn off this app on certain platforms.
+                     If you don't want it to appear on the Shotgun Pipeline Toolkit action menu
+                     for a platform, just include it in the the deny_platforms list. Valid values
+                     are Windows, Mac and Linux."
+
+  viewer_extensions:
+    type: list
+    values: { type: str }
+    default_value: [ vpb ]
+    description: "A list of file extensions to send to the viewer application.
+                       Do not include the period character. Example: `[vpb]`"
+
+  hook_launch_publish:
+    type: hook
+    description: Launch an application and tell it to load a file.
+      Typically, this hook would look at the file extension,
+      then decide on an app to launch, launch that app, start
+      up the engine and finally load the file. Returns True if
+      an application was launched, False if not.
+    default_value: shotgun_launch_vred
+    parameters: [ path, context ]
+
+  hook_verify_install:
+    type: hook
+    description: Verifies VRED Presenter installation
+    default_value: verify_install
+    parameters: [ tk, context ]
+
 # this app works in all engines - it does not contain
 # any host application specific commands
-supported_engines:
+supported_engines: [tk-shotgun]
 
 # the Shotgun fields that this engine needs in order to operate correctly
 requires_shotgun_fields:
 
 # More verbose description of this item
-display_name: "Shotgun Pipeline Toolkit Starter"
-description: "Breakdown tool v2"
+display_name: "Review with VRED"
+description: "Use VRED Presenter with Shotgun Panel for reviewing data."
 
 # Required minimum versions for this item to run
 requires_shotgun_version:
-requires_core_version: "v0.14.28"
-requires_engine_version:
+requires_core_version: "v0.19.5"
+requires_engine_version: "v0.1.0"
 
 # the frameworks required to run this app
 frameworks:
