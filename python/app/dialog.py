@@ -11,6 +11,7 @@
 import os
 
 import sgtk
+
 # by importing QT from sgtk rather than directly, we ensure that
 # the code will be compatible with both PySide and PyQt.
 from sgtk.platform.qt import QtCore, QtGui
@@ -38,6 +39,7 @@ class AppDialog(QtGui.QWidget):
     """
     Main application dialog window
     """
+
     @property
     def hide_tk_title_bar(self):
         "Tell the system to not show the standard toolkit toolbar"
@@ -47,7 +49,7 @@ class AppDialog(QtGui.QWidget):
         super(AppDialog, self).__init__(parent)
         # get the current bundle
         self._app = sgtk.platform.current_bundle()
-        self.title = 'Review with VRED Help UI'
+        self.title = "Review with VRED Help UI"
         self.initUI()
 
     def initUI(self):
@@ -55,7 +57,9 @@ class AppDialog(QtGui.QWidget):
         self.setWindowTitle(self.title)
         self.layout = QtGui.QVBoxLayout()
         self.logo = QtGui.QLabel()
-        self.logo.setPixmap(QtGui.QPixmap(os.path.join(self._app.disk_location, "icon_256.png")))
+        self.logo.setPixmap(
+            QtGui.QPixmap(os.path.join(self._app.disk_location, "icon_256.png"))
+        )
         self.label1 = QtGui.QLabel()
         self.label1.setText(
             "Shotgun cannot find VRED Presenter on your system.<p>"

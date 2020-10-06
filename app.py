@@ -164,7 +164,6 @@ class ReviewWithVRED(Application):
                 d.get("entity").get("type"), d.get("entity").get("id")
             )
 
-
         # call out to the hook
         try:
             launched = self.execute_hook(
