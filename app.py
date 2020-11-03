@@ -143,9 +143,9 @@ class ReviewWithVRED(Application):
         # will fail later when we check if the file exists on disk
         for x in self.get_setting("viewer_extensions", {}):
             if path_on_disk.endswith(".%s" % x):
-                self.log_error("File is of type %s" % x)
+                self.log_info("File is of type %s" % x)
             else:
-                self.log_info("File type does not work for Review with VRED.")
+                self.log_error("File type does not work for Review with VRED.")
                 return
 
         # check that it exists
