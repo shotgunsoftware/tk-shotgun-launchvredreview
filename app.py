@@ -80,13 +80,14 @@ class ReviewWithVRED(Application):
 
         if len(entity_ids) != 1:
             raise Exception("Action only accepts a single item.")
+        entity_id = entity_ids[0]
 
         if entity_type == "Version":
             # entity is a version so try to get the id
             # of the published file it is linked to
             # TODO: using find_one - what if there is more than one?
             v = self.shotgun.find_one(
-                "Version", [["id", "is", entity_ids[0]]], ["published_files"]
+                "Version", [["id", "is", entity_id]], ["published_files"]
             )
             if not v.get("published_files"):
                 self.logger.error(
@@ -96,7 +97,7 @@ class ReviewWithVRED(Application):
             publish_id = v["published_files"][0]["id"]
 
         else:
-            publish_id = entity_ids[0]
+            publish_id = entity_id
 
         # first get the path to the file on the local platform
         d = self.shotgun.find_one(
@@ -155,9 +156,12 @@ class ReviewWithVRED(Application):
             )
             return
 
-        # now get the context - try to be as inclusive as possible here:
-        # start with the task, if that doesn't work, fall back onto the entity
-        if d.get("task"):
+        # now get the context - set up a Version context if possible, else try
+        # to be as inclusive as possible here: start with the task, if that
+        # doesn't work, fall back onto the entity
+        if entity_type == "Version":
+            ctx = self.sgtk.context_from_entity(entity_type, entity_id)
+        elif d.get("task"):
             ctx = self.sgtk.context_from_entity("Task", d.get("task").get("id"))
         else:
             ctx = self.sgtk.context_from_entity(
