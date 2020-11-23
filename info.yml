@@ -30,13 +30,11 @@ configuration:
                      If you don't want it to appear on the Shotgun Pipeline Toolkit action menu
                      for a platform, just include it in the the deny_platforms list. Valid values
                      are Windows, Mac and Linux."
-
-  viewer_extensions:
+  accepted_published_file_types:
     type: list
     values: { type: str }
-    default_value: [ vpb ]
-    description: "A list of file extensions to send to the viewer application.
-                       Do not include the period character. Example: `[vpb]`"
+    default_value: [ VRED Scene ]
+    description: "A list of PublishedFileTypes that are allowed for review with VRED."
 
   hook_launch_publish:
     type: hook

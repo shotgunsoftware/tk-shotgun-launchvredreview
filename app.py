@@ -56,113 +56,166 @@ class ReviewWithVRED(Application):
             self.log_error("Failed to check VRED installation: {}".format(error))
 
     def _launch_via_hook(self, entity_type, entity_ids):
+        """
+        Executes the "hook_launch_publish" hook.
+        """
 
-        published_file_entity_type = sgtk.util.get_published_file_entity_type(self.sgtk)
-
-        if entity_type not in [published_file_entity_type, "Version"]:
-            raise Exception(
-                "Sorry, this app only works with entities of type %s or Version."
-                % published_file_entity_type
-            )
-
-        if len(entity_ids) != 1:
+        if entity_ids and len(entity_ids) != 1:
             raise Exception("Action only accepts a single item.")
 
-        if entity_type == "Version":
-            # entity is a version so try to get the id
-            # of the published file it is linked to
-            # TODO: using find_one - what if there is more than one?
-            v = self.shotgun.find_one(
-                "Version", [["id", "is", entity_ids[0]]], ["published_files"]
+        entity_id = entity_ids[0]
+        published_file = self._get_published_file_from_entity(entity_type, entity_id)
+
+        if published_file is None:
+            # Published file for entity was not found
+            raise Exception(
+                "Sorry, this can only be used on an entity with an associated published file."
             )
-            if not v.get("published_files"):
-                self.logger.error(
-                    "Sorry, this can only be used on Versions with an associated Published File."
-                )
-                return
-            publish_id = v["published_files"][0]["id"]
 
-        else:
-            publish_id = entity_ids[0]
+        if published_file.get("error", None) is not None:
+            # There was an error getting the published file from the entity
+            raise Exception(published_file["error"])
 
-        # first get the path to the file on the local platform
-        d = self.shotgun.find_one(
-            published_file_entity_type,
-            [["id", "is", publish_id]],
-            ["path", "task", "entity"],
-        )
-        path_on_disk = d.get("path").get("local_path")
+        # Extract the path on local disk for the published file that will be openedin VRED
+        # for review
+        path_on_disk = _get_published_file_path(published_file)
 
-        # If this PublishedFile came from a zero config publish, it will
-        # have a file URL rather than a local path.
         if path_on_disk is None:
-            path_on_disk = d.get("path").get("url")
-            if path_on_disk is not None:
-                # We might have something like a %20, which needs to be
-                # unquoted into a space, as an example.
-                if "%" in path_on_disk:
-                    path_on_disk = urllib.parse.unquote(path_on_disk)
-
-                # If this came from a file url via a zero-config style publish
-                # then we'll need to remove that from the head in order to end
-                # up with the local disk path to the file.
-                #
-                # On Windows, we will have a path like file:///E:/path/to/file.jpg
-                # and we need to ditch all three of the slashes at the head. On
-                # other operating systems it will just be file:///path/to/file.jpg
-                # and we will want to keep the leading slash.
-                if util.is_windows():
-                    pattern = r"^file:///"
-                else:
-                    pattern = r"^file://"
-
-                path_on_disk = re.sub(pattern, "", path_on_disk)
-            else:
-                self.log_error(
-                    "Unable to determine the path on disk for entity id=%s."
-                    % publish_id
+            raise Exception(
+                "Unable to determine the path on disk for published file with id '{}'.".format(
+                    published_file["id"]
                 )
-
-        # first check if we should pass this to the viewer
-        # hopefully this will cover most image sequence types
-        # any image sequence types not passed to the viewer
-        # will fail later when we check if the file exists on disk
-        for x in self.get_setting("viewer_extensions", {}):
-            if path_on_disk.endswith(".%s" % x):
-                self.log_error("File is of type %s" % x)
-            else:
-                self.log_info("File type does not work for Review with VRED.")
-                return
-
-        # check that it exists
-        if not os.path.exists(path_on_disk):
-            self.log_error(
-                "The file associated with this publish, "
-                "%s, cannot be found on disk!" % path_on_disk
-            )
-            return
-
-        # now get the context - try to be as inclusive as possible here:
-        # start with the task, if that doesn't work, fall back onto the entity
-        if d.get("task"):
-            ctx = self.sgtk.context_from_entity("Task", d.get("task").get("id"))
-        else:
-            ctx = self.sgtk.context_from_entity(
-                d.get("entity").get("type"), d.get("entity").get("id")
             )
 
-        # call out to the hook
+        # Only check the path on disk if there is one. The user is allowed launch VRED with no
+        # initial file path.
+        if path_on_disk and not os.path.exists(path_on_disk):
+            raise Exception(
+                "The file associated with this publish '{}' cannot be found on disk!".format(
+                    path_on_disk
+                )
+            )
+
+        # Get a context object based on the entity passed to this method
+        ctx = self.sgtk.context_from_entity(entity_type, entity_id)
         try:
-            launched = self.execute_hook(
-                "hook_launch_publish",
-                path=path_on_disk,
-                context=ctx,
-            )
-        except TankError as e:
-            self.log_error("Failed to launch VRED for this published file: %s" % e)
-            return
+            if self.execute_hook("hook_launch_publish", path=path_on_disk, context=ctx):
+                self.log_info("Successfully launched Review with VRED.")
+            else:
+                self.log_error("Failed to launch Review with VRED.")
 
-        if launched:
-            self.log_info("Successfully launched Review with VRED.")
+        except TankError as error:
+            self.log_error(
+                "Failed to launch VRED for this published file: {}".format(error)
+            )
+
+    def _get_published_file_from_entity(self, entity_type, entity_id):
+        """
+        Return the published file associated with the given entity. Supported entity types:
+        the published entity type defined by the pipeline configuration, "Version" and "Playlist".
+
+        published entity type: The object for `entity_type` and `entity_id` will be returned.
+        "Version": The last created published file will be returned
+        "Playlist": No published file object will be returned
+        """
+
+        published_file = None
+        published_file_entity_type = sgtk.util.get_published_file_entity_type(self.sgtk)
+
+        if entity_type == published_file_entity_type:
+            published_file = self.shotgun.find_one(
+                published_file_entity_type,
+                [["id", "is", entity_id]],
+                fields=["id", "path"],
+            )
+
+        elif entity_type == "Version":
+            accepted_published_file_types = self.get_setting(
+                "accepted_published_file_types", []
+            )
+            published_files = self.shotgun.find(
+                published_file_entity_type,
+                [
+                    ["version", "is", {"type": "Version", "id": entity_id}],
+                    [
+                        "published_file_type.PublishedFileType.code",
+                        "in",
+                        accepted_published_file_types,
+                    ],
+                ],
+                fields=["id", "path"],
+                order=[{"field_name": "version_number", "direction": "desc"}],
+            )
+
+            if not published_files:
+                published_file = {
+                    "error": "Version has no published files to load for review."
+                }
+
+            elif len(published_files) != 1:
+                # FIXME error message
+                published_file = {
+                    "error": "Failed to load Version for review with VRED because there is more than one PublishedFile entity with the same PublishedFileType associated for this Version"
+                }
+
+            else:
+                published_file = published_files[0]
+
+        elif entity_type == "Playlist":
+            # TODO get the last added version to the playlist and open the associatd published file
+            # This requires opening SG Panel with a Playlist context, and then switching to the
+            # Version to automatically start reviewing
+            published_file = {}
+
         else:
-            self.log_info("There was an error launching Review with VRED.")
+            # Unsupported entity type, return error inside dictionary result
+            published_file = {
+                "error": "Sorry, this app only works with entities of type {}, Version or Playlist.".format(
+                    published_file_entity_type
+                )
+            }
+
+        return published_file
+
+
+def _get_published_file_path(published_file):
+    """
+    Return the path on disk for the given published file.
+    """
+
+    if published_file is None:
+        return None
+
+    path = published_file.get("path", None)
+    if path is None:
+        return ""
+
+    # Return the local path right away, if we have it
+    if path.get("local_path", None) is not None:
+        return path["local_path"]
+
+    # This published file came from a zero config publish, it will
+    # have a file URL rather than a local path.
+    path_on_disk = path.get("url", None)
+    if path_on_disk is not None:
+        # We might have something like a %20, which needs to be
+        # unquoted into a space, as an example.
+        if "%" in path_on_disk:
+            path_on_disk = urllib.parse.unquote(path_on_disk)
+
+        # If this came from a file url via a zero-config style publish
+        # then we'll need to remove that from the head in order to end
+        # up with the local disk path to the file.
+        #
+        # On Windows, we will have a path like file:///E:/path/to/file.jpg
+        # and we need to ditch all three of the slashes at the head. On
+        # other operating systems it will just be file:///path/to/file.jpg
+        # and we will want to keep the leading slash.
+        if util.is_windows():
+            pattern = r"^file:///"
+        else:
+            pattern = r"^file://"
+
+        path_on_disk = re.sub(pattern, "", path_on_disk)
+
+    return path_on_disk
