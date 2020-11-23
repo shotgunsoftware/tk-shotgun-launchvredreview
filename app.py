@@ -26,7 +26,7 @@ class ReviewWithVRED(Application):
 
     def init_app(self):
         """
-        Called as the application is being initialized
+        Called as the application is being initialized.
         """
 
         try:
@@ -57,7 +57,21 @@ class ReviewWithVRED(Application):
 
     def _launch_via_hook(self, entity_type, entity_ids):
         """
-        Executes the "hook_launch_publish" hook.
+        Executes the "hook_launch_publish" hook, passing a context and file path params
+        that are extracted from process the entity passed in. This method only supports
+        entity typess: PublishedFile entity type, Version and Playlist. For each entity
+        type, the context passed to the hook will be the entity passed in to this method.
+        The file path will be determined based on the entity type:
+            PublishedFile entity types: file path will be the PublishedFile's path itself
+            Version: file path will be the latest PublishedFile whose PublishedFileType
+                     is in the accepted list. The "latest" PublishedFile is determined by
+                     the PublishedFile with the highest version.
+            Playlist: file path will be empty (""). For now, no Version is autoamatically
+                      loaded for review, the user will be shown the Version list to select
+                      from to load first.
+
+        :param entity_type: The entity's type.
+        :param entity_id: The id of the entity.
         """
 
         if entity_ids and len(entity_ids) != 1:
@@ -153,9 +167,8 @@ class ReviewWithVRED(Application):
                 }
 
             elif len(published_files) != 1:
-                # FIXME error message
                 published_file = {
-                    "error": "Failed to load Version for review with VRED because there is more than one PublishedFile entity with the same PublishedFileType associated for this Version"
+                    "error": "Failed to load Version for review with VRED because there is more than one PublishedFile entity with the same PublishedFileType associated for this Version."
                 }
 
             else:
