@@ -28,45 +28,32 @@ class ReviewWithVRED(Application):
         """
         Called as the application is being initialized
         """
-        # Assume we do not have VRED Presenter installed and change if / when
-        # we find it.
-        installed = False
-        tk = sgtk.sgtk_from_entity("Project", self.context.project["id"])
-        context = tk.context_from_entity("Project", self.context.project["id"])
+
         try:
-            install_check = self.execute_hook("hook_verify_install")
-        except TankError as e:
-            self.log_error("Failed to check VRED installation: %s" % e)
-            return
+            if self.execute_hook("hook_verify_install"):
+                # Make sure we check on the permissions and platforms settings
+                deny_permissions = self.get_setting("deny_permissions")
+                deny_platforms = self.get_setting("deny_platforms")
+                params = {
+                    "title": "Review with VRED",
+                    "deny_permissions": deny_permissions,
+                    "deny_platforms": deny_platforms,
+                    "supports_multiple_selection": False,
+                }
 
-        # If we find it, change the logic and register the app the right way
-        if install_check:
-            installed = True
+                # Now register the command with the engine
+                self.engine.register_command(
+                    "Review with VRED", self._launch_via_hook, params
+                )
 
-        if installed:
-            app_payload = self.import_module("app")
+            else:
+                # Bring up the Help UI
+                app_payload = self.import_module("app")
+                menu_callback = lambda: app_payload.dialog.show_dialog(self)
+                self.engine.register_command("Review with VRED", menu_callback)
 
-            # Make sure we check on the permissions and platforms settings
-            deny_permissions = self.get_setting("deny_permissions")
-            deny_platforms = self.get_setting("deny_platforms")
-
-            params = {
-                "title": "Review with VRED",
-                "deny_permissions": deny_permissions,
-                "deny_platforms": deny_platforms,
-                "supports_multiple_selection": False,
-            }
-
-            # now register the command with the engine
-            self.engine.register_command(
-                "Review with VRED", self._launch_via_hook, params
-            )
-
-        else:
-            # Bring up the Help UI
-            app_payload = self.import_module("app")
-            menu_callback = lambda: app_payload.dialog.show_dialog(self)
-            self.engine.register_command("Review with VRED", menu_callback)
+        except TankError as error:
+            self.log_error("Failed to check VRED installation: {}".format(error))
 
     def _launch_via_hook(self, entity_type, entity_ids):
 
