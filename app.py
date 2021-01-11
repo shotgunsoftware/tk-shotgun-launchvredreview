@@ -31,8 +31,6 @@ class ReviewWithVRED(Application):
         # Assume we do not have VRED Presenter installed and change if / when
         # we find it.
         installed = False
-        tk = sgtk.sgtk_from_entity("Project", self.context.project["id"])
-        context = tk.context_from_entity("Project", self.context.project["id"])
         try:
             install_check = self.execute_hook("hook_verify_install")
         except TankError as e:
