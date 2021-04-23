@@ -30,30 +30,32 @@ class ReviewWithVRED(Application):
         """
 
         try:
-            if self.execute_hook("hook_verify_install"):
-                # Make sure we check on the permissions and platforms settings
-                deny_permissions = self.get_setting("deny_permissions")
-                deny_platforms = self.get_setting("deny_platforms")
-                params = {
-                    "title": "Review with VRED",
-                    "deny_permissions": deny_permissions,
-                    "deny_platforms": deny_platforms,
-                    "supports_multiple_selection": False,
-                }
-
-                # Now register the command with the engine
-                self.engine.register_command(
-                    "Review with VRED", self._launch_via_hook, params
-                )
-
-            else:
-                # Bring up the Help UI
-                app_payload = self.import_module("app")
-                menu_callback = lambda: app_payload.dialog.show_dialog(self)
-                self.engine.register_command("Review with VRED", menu_callback)
-
+            installed = self.execute_hook("hook_verify_install")
         except TankError as error:
+            # Log an error message and return immediately on failure to find VRED installation.
             self.log_error("Failed to check VRED installation: {}".format(error))
+            return
+
+        if installed:
+            # Make sure we check on the permissions and platforms settings
+            deny_permissions = self.get_setting("deny_permissions")
+            deny_platforms = self.get_setting("deny_platforms")
+            params = {
+                "title": "Review with VRED",
+                "deny_permissions": deny_permissions,
+                "deny_platforms": deny_platforms,
+                "supports_multiple_selection": False,
+            }
+
+            # Now register the command with the engine
+            self.engine.register_command(
+                "Review with VRED", self._launch_via_hook, params
+            )
+        else:
+            # No installatino found, bring up the Help UI
+            app_payload = self.import_module("app")
+            menu_callback = lambda: app_payload.dialog.show_dialog(self)
+            self.engine.register_command("Review with VRED", menu_callback)
 
     def _launch_via_hook(self, entity_type, entity_ids):
         """
