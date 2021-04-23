@@ -73,9 +73,7 @@ class ReviewWithVRED(Application):
                       from to load first.
 
         :param entity_type: The type of the entities.
-        :type entity_type: str
         :param entity_ids: The list of ids of the entities
-        :type entity_type: list
         """
 
         if not entity_ids:
@@ -90,20 +88,20 @@ class ReviewWithVRED(Application):
 
         if published_file is None:
             # Published file for entity was not found
-            raise Exception(
+            raise TankError(
                 "Sorry, this can only be used on an entity with an associated published file."
             )
 
         if published_file.get("error", None) is not None:
             # There was an error getting the published file from the entity
-            raise Exception(published_file["error"])
+            raise TankError(published_file["error"])
 
         # Extract the path on local disk for the published file that will be openedin VRED
         # for review
         path_on_disk = _get_published_file_path(published_file)
 
         if path_on_disk is None:
-            raise Exception(
+            raise TankError(
                 "Unable to determine the path on disk for published file with id '{}'.".format(
                     published_file["id"]
                 )
@@ -112,7 +110,7 @@ class ReviewWithVRED(Application):
         # Only check the path on disk if there is one. The user is allowed launch VRED with no
         # initial file path.
         if path_on_disk and not os.path.exists(path_on_disk):
-            raise Exception(
+            raise TankError(
                 "The file associated with this publish '{}' cannot be found on disk!".format(
                     path_on_disk
                 )
@@ -128,7 +126,9 @@ class ReviewWithVRED(Application):
 
         except TankError as error:
             self.log_error(
-                "Failed to launch VRED for this published file: {}".format(error)
+                "An error occurred when attempting to launch VRED for this published file: {}".format(
+                    error
+                )
             )
 
     def _get_published_file_from_entity(self, entity_type, entity_id):
@@ -139,6 +139,9 @@ class ReviewWithVRED(Application):
         published entity type: The object for `entity_type` and `entity_id` will be returned.
         "Version": The last created published file will be returned
         "Playlist": No published file object will be returned
+
+        :param entity_type: The entity type
+        :param entity_id: The entity id
         """
 
         published_file = None
@@ -202,6 +205,8 @@ class ReviewWithVRED(Application):
 def _get_published_file_path(published_file):
     """
     Return the path on disk for the given published file.
+
+    :param published_file: The PublishedFile entity
     """
 
     if published_file is None:
