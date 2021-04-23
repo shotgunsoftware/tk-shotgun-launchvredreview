@@ -96,7 +96,7 @@ class ReviewWithVRED(Application):
             # There was an error getting the published file from the entity
             raise TankError(published_file["error"])
 
-        # Extract the path on local disk for the published file that will be openedin VRED
+        # Extract the path on local disk for the published file that will be opened in VRED
         # for review
         path_on_disk = _get_published_file_path(published_file)
 
