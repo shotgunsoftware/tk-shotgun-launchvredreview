@@ -32,7 +32,7 @@ class ReviewWithVRED(Application):
         try:
             installed = self.execute_hook("hook_verify_install")
         except TankError as error:
-            # Log an error message and return immediately on failure to find VRED installation.
+            # Log an error and return immediately on failure to find VRED installation.
             self.log_error("Failed to check VRED installation: {}".format(error))
             return
 
@@ -72,12 +72,18 @@ class ReviewWithVRED(Application):
                       loaded for review, the user will be shown the Version list to select
                       from to load first.
 
-        :param entity_type: The entity's type.
-        :param entity_id: The id of the entity.
+        :param entity_type: The type of the entities.
+        :type entity_type: str
+        :param entity_ids: The list of ids of the entities
+        :type entity_type: list
         """
 
-        if entity_ids and len(entity_ids) != 1:
-            raise Exception("Action only accepts a single item.")
+        if not entity_ids:
+            self.log_warning("No entity was passed - returning immediately.")
+            return
+
+        if len(entity_ids) > 1:
+            raise TankError("Action only accepts a single item.")
 
         entity_id = entity_ids[0]
         published_file = self._get_published_file_from_entity(entity_type, entity_id)
