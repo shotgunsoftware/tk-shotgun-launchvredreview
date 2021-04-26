@@ -31,13 +31,6 @@ configuration:
                      for a platform, just include it in the the deny_platforms list. Valid values
                      are Windows, Mac and Linux."
 
-  viewer_extensions:
-    type: list
-    values: { type: str }
-    default_value: [ vpb ]
-    description: "A list of file extensions to send to the viewer application.
-                       Do not include the period character. Example: `[vpb]`"
-
   hook_launch_publish:
     type: hook
     description: Launch an application and tell it to load a file.
