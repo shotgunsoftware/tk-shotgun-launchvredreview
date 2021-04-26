@@ -137,7 +137,7 @@ class ReviewWithVRED(Application):
         the published entity type defined by the pipeline configuration, "Version" and "Playlist".
 
         published entity type: The object for `entity_type` and `entity_id` will be returned.
-        "Version": The last created published file will be returned
+        "Version": The published file with the highest version will be returned
         "Playlist": No published file object will be returned
 
         :param entity_type: The entity type
@@ -155,20 +155,40 @@ class ReviewWithVRED(Application):
             )
 
         elif entity_type == "Version":
-            accepted_published_file_types = self.get_setting(
-                "accepted_published_file_types", []
-            )
+            filters = [["version", "is", {"type": "Version", "id": entity_id}]]
+            # Attempt to get the filter for Published File Types from the tk-vred engine settings. If an error
+            # occurs, or no such settings was found, Published Files of any type will be queried.
+            try:
+                tk = sgtk.sgtk_from_entity(
+                    self.context.project["type"], self.context.project["id"]
+                )
+                env = sgtk.platform.engine.get_environment_from_context(
+                    tk, self.context
+                )
+                engine_settings = env.get_engine_settings("tk-vred")
+                accepted_published_file_types = engine_settings.get(
+                    "accepted_published_file_types"
+                )
+                if accepted_published_file_types:
+                    filters.append(
+                        [
+                            "published_file_type.PublishedFileType.code",
+                            "in",
+                            accepted_published_file_types,
+                        ]
+                    )
+            except Exception as error:
+                self.logger.warning(
+                    "Failed to retrieve 'accepted_published_file_types' filter setting. Retrieving Published Files of any type.\n\n{e}".format(
+                        e=error
+                    )
+                )
+
+            # Retrieve the lastest Published File (highest version) for this Version
             published_files = self.shotgun.find(
                 published_file_entity_type,
-                [
-                    ["version", "is", {"type": "Version", "id": entity_id}],
-                    [
-                        "published_file_type.PublishedFileType.code",
-                        "in",
-                        accepted_published_file_types,
-                    ],
-                ],
-                fields=["id", "path"],
+                filters,
+                fields=["id", "path", "published_file_type"],
                 order=[{"field_name": "version_number", "direction": "desc"}],
             )
 
