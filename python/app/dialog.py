@@ -62,11 +62,11 @@ class AppDialog(QtGui.QWidget):
         )
         self.label1 = QtGui.QLabel()
         self.label1.setText(
-            "Shotgun cannot find VRED Presenter on your system.<p>"
+            "ShotGrid cannot find VRED Presenter on your system.<p>"
             "To use this feature, please contact your system "
             "administrator to get VRED Presenter installed on this computer.<br>"
             "Note: VRED Professional also includes an installation of "
-            "VRED Presenter that can be used with Shotgun.<br>"
+            "VRED Presenter that can be used with ShotGrid.<br>"
             "This functionality was introduced with the VRED2021.2 release.<p>"
             "<a href=https://www.autodesk.com/products/vred/features?#internal-link-vred-presenter>"
             "Learn more about VRED Presenter here.</a>"
