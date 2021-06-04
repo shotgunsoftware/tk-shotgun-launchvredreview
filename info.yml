@@ -27,7 +27,7 @@ configuration:
     values: { type: str }
     allows_empty: True
     description: "An optional parameter which lets you turn off this app on certain platforms.
-                     If you don't want it to appear on the Shotgun Pipeline Toolkit action menu
+                     If you don't want it to appear on the ShotGrid Pipeline Toolkit action menu
                      for a platform, just include it in the the deny_platforms list. Valid values
                      are Windows, Mac and Linux."
 
@@ -56,7 +56,7 @@ requires_shotgun_fields:
 
 # More verbose description of this item
 display_name: "Review with VRED"
-description: "Use VRED Presenter with Shotgun Panel for reviewing data."
+description: "Use VRED Presenter with ShotGrid Panel for reviewing data."
 
 # Required minimum versions for this item to run
 requires_shotgun_version:
