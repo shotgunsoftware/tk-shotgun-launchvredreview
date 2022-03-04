@@ -1,4 +1,4 @@
-# Copyright (c) 2020 Shotgun Software Inc.
+# Copyright (c) 2020 Autodesk, Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -6,17 +6,15 @@
 # Source Code License included in this distribution package. See LICENSE.
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
-# not expressly granted therein are reserved by Shotgun Software Inc.
+# not expressly granted therein are reserved by Autodesk, Inc.
+
+import os
 
 import sgtk
-import os
-import sys
-import threading
 
 # by importing QT from sgtk rather than directly, we ensure that
 # the code will be compatible with both PySide and PyQt.
 from sgtk.platform.qt import QtCore, QtGui
-from .ui.dialog import Ui_Dialog
 
 # standard toolkit logger
 logger = sgtk.platform.get_logger(__name__)
@@ -32,7 +30,9 @@ def show_dialog(app_instance):
 
     # we pass the dialog class to this method and leave the actual construction
     # to be carried out by toolkit.
-    app_instance.engine.show_dialog("Starter Template App...", app_instance, AppDialog)
+    app_instance.engine.show_dialog(
+        "Review with VRED Presenter", app_instance, AppDialog
+    )
 
 
 class AppDialog(QtGui.QWidget):
@@ -40,28 +40,38 @@ class AppDialog(QtGui.QWidget):
     Main application dialog window
     """
 
-    def __init__(self):
-        """
-        Constructor
-        """
-        # first, call the base class and let it do its thing.
-        QtGui.QWidget.__init__(self)
+    @property
+    def hide_tk_title_bar(self):
+        "Tell the system to not show the standard toolkit toolbar"
+        return True
 
-        # now load in the UI that was created in the UI designer
-        self.ui = Ui_Dialog()
-        self.ui.setupUi(self)
-
-        # most of the useful accessors are available through the Application class instance
-        # it is often handy to keep a reference to this. You can get it via the following method:
+    def __init__(self, parent=None):
+        super(AppDialog, self).__init__(parent)
+        # get the current bundle
         self._app = sgtk.platform.current_bundle()
+        self.title = "Review with VRED Help UI"
+        self.initUI()
 
-        # logging happens via a standard toolkit logger
-        logger.info("Launching Starter Application...")
-
-        # via the self._app handle we can for example access:
-        # - The engine, via self._app.engine
-        # - A Shotgun API instance, via self._app.shotgun
-        # - An Sgtk API instance, via self._app.sgtk
-
-        # lastly, set up our very basic UI
-        self.ui.context.setText("Current Context: %s" % self._app.context)
+    def initUI(self):
+        # Setup the UI
+        self.setWindowTitle(self.title)
+        self.layout = QtGui.QVBoxLayout()
+        self.logo = QtGui.QLabel()
+        self.logo.setPixmap(
+            QtGui.QPixmap(os.path.join(self._app.disk_location, "icon_256.png"))
+        )
+        self.label1 = QtGui.QLabel()
+        self.label1.setText(
+            "ShotGrid cannot find VRED Presenter on your system.<p>"
+            "To use this feature, please contact your system "
+            "administrator to get VRED Presenter installed on this computer.<br>"
+            "Note: VRED Professional also includes an installation of "
+            "VRED Presenter that can be used with ShotGrid.<br>"
+            "This functionality was introduced with the VRED2021.2 release.<p>"
+            "<a href=https://www.autodesk.com/products/vred/features?#internal-link-vred-presenter>"
+            "Learn more about VRED Presenter here.</a>"
+        )
+        self.label1.setOpenExternalLinks(True)
+        self.layout.addWidget(self.logo)
+        self.layout.addWidget(self.label1)
+        self.setLayout(self.layout)
