@@ -35,22 +35,26 @@ class LaunchWithVRED(HookBaseClass):
                 presenter_versions.append(version)
         presenter_version = presenter_versions[-1]
         launch_info = software_launcher.prepare_launch(presenter_version.path, "")
-        env = os.environ.copy()
-        for k in launch_info.environment:
-            if k == "SGTK_CONTEXT":
-                env[k] = sgtk.context.serialize(context)
-            else:
-                env[k] = str(launch_info.environment[k])
+
+        # save the current environment to be able to restore it later
+        environ_clone = os.environ.copy()
+
+        # modify the current environment to have all the mandatory information when launching the executable
+        os.environ.update(launch_info.environment)
+        os.environ["SGTK_CONTEXT"] = sgtk.context.serialize(context)
+
+        # prepare the command to launch VRED Presenter with the right arguments
+        cmd = f'start /B "App" "{launch_info.path}" {launch_info.args} {path}'
+
         try:
-            launched = subprocess.Popen(
-                [launch_info.path, launch_info.args, path], env=env
-            )
+            os.system(cmd)
         except RuntimeError:
             raise TankError(
                 "Unable to launch VRED Presenter in context "
                 "%r for file %s." % (context, path)
             )
-        if launched:
-            return True
-        else:
-            return False
+        finally:
+            os.environ.clear()
+            os.environ.update(environ_clone)
+
+        return True
