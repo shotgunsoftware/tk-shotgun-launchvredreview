@@ -4,7 +4,7 @@
 
 ## Documentation
 
-This repository is a part of the Flow Production Tracking.
+This repository is a part of the Flow Production Tracking Toolkit.
 
 - For more information about this engine and for release notes, *see the wiki section*.
 - For general information and documentation, click here: https://developer.shotgridsoftware.com/d587be80/?title=Integrations+User+Guide
