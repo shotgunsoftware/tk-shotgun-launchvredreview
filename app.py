@@ -207,7 +207,7 @@ class ReviewWithVRED(Application):
 
         elif entity_type == "Playlist":
             # TODO get the last added version to the playlist and open the associatd published file
-            # This requires opening SG Panel with a Playlist context, and then switching to the
+            # This requires opening PTR Panel with a Playlist context, and then switching to the
             # Version to automatically start reviewing
             published_file = {}
 
