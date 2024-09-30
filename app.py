@@ -10,12 +10,12 @@
 
 import os
 import re
+import urllib
 
 import sgtk
 from sgtk.platform import Application
 from sgtk import TankError
 from sgtk import util
-from tank_vendor.six.moves import urllib
 
 
 class ReviewWithVRED(Application):
