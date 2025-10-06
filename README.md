@@ -20,4 +20,4 @@ click here: https://developer.shotgridsoftware.com/162eaa4b/?title=Pipeline+Inte
 
 ## Have a Question?
 
-Don't hesitate to contact us! You can find us on knowledge.autodesk.com/contact-support
+Don't hesitate to contact us! You can find us on https://www.autodesk.com/support.
