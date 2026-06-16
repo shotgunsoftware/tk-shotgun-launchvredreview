@@ -46,7 +46,7 @@ class AppDialog(QtGui.QWidget):
         return True
 
     def __init__(self, parent=None):
-        super(AppDialog, self).__init__(parent)
+        super().__init__(parent)
         # get the current bundle
         self._app = sgtk.platform.current_bundle()
         self.title = "Review with VRED Help UI"

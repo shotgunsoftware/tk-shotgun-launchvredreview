@@ -61,6 +61,7 @@ description: "Use VRED Presenter with Flow Production Tracking Panel for reviewi
 # Required minimum versions for this item to run
 requires_shotgun_version:
 requires_core_version: "v0.19.5"
+minimum_python_version: "3.9"
 requires_engine_version: "v0.1.0"
 
 # the frameworks required to run this app
